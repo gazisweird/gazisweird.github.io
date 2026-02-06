@@ -2,1016 +2,175 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>DOOM - Los peces rabiosos</title>
-<link rel="icon" type="image/png" href="sprays/IG_software.png">
+<title>Test Ultra Secreto - Israel</title>
 
 <style>
-body{margin:0;overflow:hidden;background:black;font-family:monospace}
-
-canvas, img, div {
-  image-rendering: pixelated;
-  image-rendering: crisp-edges;
+body {
+    margin: 0;
+    font-family: "Courier New", monospace;
+    background: black;
+    color: #00ff00;
+    overflow: hidden;
 }
 
-/* --- EFECTO HOVER SETTINGS --- */
-#mainSettingsBtn:hover #mainSettingsImg {
-    content: url("sprays/settings2_negative.png");
+.screen {
+    display: none;
+    height: 100vh;
+    padding: 20px;
 }
 
-/* --- SISTEMA DE CORTINAS --- */
-.curtain {
-    position: fixed;
-    width: 55%; 
-    height: 100%;
-    z-index: 1000;
-    pointer-events: none;
-    transition: transform 0.8s cubic-bezier(0.42, 0, 0.58, 1);
-    background-image: url("sprays/curtains.png");
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
+.active {
+    display: block;
 }
 
-#curtainLeft {
-    left: 0;
-    top: -0px; 
-    z-index: 1001; 
-    transform: translateX(-100%);
+.cmd {
+    white-space: pre-line;
+    font-size: 16px;
 }
 
-#curtainRight {
-    right: 0;
-    top: 0;
-    z-index: 1000;
-    transform: translateX(100%) scaleX(-1);
+.center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
-.curtains-closed #curtainLeft { transform: translateX(0); }
-.curtains-closed #curtainRight { transform: translateX(0) scaleX(-1); }
-
-#crosshair {
-  position: fixed; top: 50%; left: 50%;
-  width: 20px; height: 20px;
-  transform: translate(-50%, -50%);
-  z-index: 5; pointer-events: none;
-  display: none;
+input, button {
+    background: black;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    padding: 10px;
+    font-family: monospace;
+    margin-top: 10px;
 }
 
-#damageOverlay {
-  position: fixed; inset: 0;
-  background: radial-gradient(circle, transparent 30%, rgba(255,0,0,0.6) 100%);
-  pointer-events: none; z-index: 100;
-  opacity: 0; transition: opacity 0.1s;
+button:hover {
+    background: #00ff00;
+    color: black;
+    cursor: pointer;
 }
 
-#deathScreen {
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.8);
-  display: none; flex-direction: column;
-  justify-content: center; align-items: center;
-  z-index: 300;
-}
-#deathImg { width: 600px; max-width: 80%; margin-bottom: 20px; }
-
-#bossUI {
-  position: fixed; top: 40px; left: 50%; transform: translateX(-50%);
-  width: 500px; display: none; flex-direction: column; align-items: center; z-index: 40;
-}
-.boss-name {
-  color: #ff0000; font-size: 24px; font-weight: bold; 
-  text-shadow: 2px 2px #000; letter-spacing: 3px; margin-bottom: 5px;
-}
-#bossBarContainer {
-  width: 100%; height: 24px; 
-  background: #222; 
-  border: 4px solid #555; 
-  box-shadow: inset 2px 2px 0 #000, 2px 2px 0 #777;
-  position: relative;
-}
-#bossBarFill {
-  width: 100%; height: 100%; 
-  background: linear-gradient(to bottom, #ff0000, #880000); 
-  transition: width 0.3s ease-out;
+.question {
+    margin-bottom: 20px;
 }
 
-#hud{
-  position:fixed;bottom:0;width:100%;height:120px;
-  background:#1a1a1a; border-top:4px solid #333; display:none; z-index:15
+.hidden {
+    display: none;
 }
-#hud-inner {
-  height: 100%; width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  align-items: center;
-}
-#ammoContainer {
-  display: flex; flex-direction: column; align-items: center;
-  color: #ff0000; 
-  border-right: 2px solid #333; height: 80%; justify-content: center;
-}
-#ammo { font-size: 58px; line-height: 1; font-weight: bold; }
-.label { font-size: 14px; color: #888; letter-spacing: 2px; }
-#faceContainer { display: flex; justify-content: center; align-items: center; }
-#faceImg { height: 100px; }
-#healthContainer {
-  display: flex; justify-content: center; align-items: center;
-  border-left: 2px solid #333; height: 80%;
-}
-.health-stack { position: relative; width: 120px; height: 120px; }
-.health-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
-#healthFill { z-index: 2; transition: clip-path 0.3s ease-out; clip-path: inset(0 0% 0 0); }
-#healthBg { z-index: 1; opacity: 0.5; }
-
-.emergency-blink { animation: flash 0.3s infinite alternate; }
-@keyframes flash { from { filter: brightness(1); } to { filter: brightness(2) drop-shadow(0 0 10px red); } }
-
-#menu {
-  position:fixed; inset:0; 
-  background: black url("sprays/load.png") center/contain no-repeat; 
-  display:flex; flex-direction: column; justify-content:flex-end; align-items:center; 
-  padding-bottom:80px; z-index:20; gap: 10px;
-}
-
-#pauseOverlay {
-    position: fixed; inset: 0;
-    background: black url("sprays/menu.png") center/contain no-repeat;
-    display: none; flex-direction: column; justify-content: center;
-    align-items: center; z-index: 200; gap: 20px;
-}
-.pause-btn, .menu-btn {
-    background: none; border: none; cursor: pointer; padding: 0; outline: none; transition: transform 0.1s;
-}
-.pause-btn:hover, .menu-btn:hover { transform: scale(1.05); }
-.pause-btn:active, .menu-btn:active { transform: scale(0.95); }
-.pause-btn img, .menu-btn img { width: 300px; display: block; }
-
-#settingsScreen {
-    position: fixed; inset: 0;
-    background: black url("sprays/settings_screen.png") center/contain no-repeat;
-    display: none; 
-    flex-direction: column; 
-    justify-content: flex-end; 
-    align-items: center; 
-    z-index: 400; 
-    color: white;
-    padding-bottom: 60px; 
-}
-.setting-item { 
-    margin: 10px; 
-    display: flex; 
-    justify-content: space-between;
-    align-items: center; 
-    width: 650px; 
-}
-.setting-label-img {
-    height: 35px;
-    image-rendering: pixelated;
-}
-
-.setting-item input[type=range] {
-    appearance: none; -webkit-appearance: none;
-    width: 200px; background: #333; height: 12px;
-    border: 3px solid #555; outline: none;
-}
-.setting-item input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; appearance: none;
-    width: 15px; height: 25px; background: #ff0000;
-    cursor: pointer; border: 2px solid #fff;
-}
-
-#changeKeyBtn:hover #changeKeyImg { content: url("sprays/button_bind_negative.png"); }
-
-/* --- CAMBIO: BOTÓN EXIT --- */
-#backSettingsBtn:hover #backSettingsImg { content: url("sprays/exit_negative.png"); }
-
-#playBtn { display: none; }
-#playImg { width: 220px; }
-#playBtn:hover #playImg { content: url("sprays/button_start_negative.png"); }
-
-#mainSettingsBtn { display: none; }
-#mainSettingsImg { width: 220px; }
-
-.retry-btn-style {
-    background: none; border: none; cursor: pointer; padding: 0; outline: none;
-    animation: blinkOpacity 0.8s infinite;
-}
-.retry-btn-style img { width: 400px; display: block; }
-@keyframes blinkOpacity { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-
-#stageScreen{
-  position:fixed; inset:0; 
-  background: black url("sprays/stage2.png") center/contain no-repeat; 
-  display:none; z-index:30;
-}
-
-#winScreen{
-  position:fixed;inset:0;background:black;display:none;z-index:50;
-  flex-direction: column; justify-content: center; align-items: center;
-}
-
-#weapon{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);width:160px;pointer-events:none;z-index:10; display:none;}
 </style>
 </head>
 
 <body>
-<div id="curtainLeft" class="curtain"></div>
-<div id="curtainRight" class="curtain"></div>
-<div id="damageOverlay"></div>
 
-<svg id="crosshair" viewBox="0 0 100 100">
-  <circle cx="50" cy="50" r="10" fill="none" stroke="red" stroke-width="8" />
-  <line x1="50" y1="20" x2="50" y2="40" stroke="red" stroke-width="8" />
-  <line x1="50" y1="60" x2="50" y2="80" stroke="red" stroke-width="8" />
-  <line x1="20" y1="50" x2="40" y2="50" stroke="red" stroke-width="8" />
-  <line x1="60" y1="50" x2="80" y2="50" stroke="red" stroke-width="8" />
-</svg>
+<!-- PANTALLA CMD -->
+<div id="loading" class="screen active cmd"></div>
 
-<div id="menu">
-    <button id="playBtn" class="menu-btn">
-        <img id="playImg" src="sprays/button_start_positive.png">
-    </button>
-    <button id="mainSettingsBtn" class="menu-btn" onclick="openSettings()">
-        <img id="mainSettingsImg" src="sprays/settings2.png">
-    </button>
+<!-- PANTALLA NOMBRE -->
+<div id="nameScreen" class="screen center">
+    <h2>ESCÁNER DE IDENTIDAD - SISTEMA ISRAELÍ</h2>
+    <p>Ingrese su nombre para verificación Mossad</p>
+    <input id="username" placeholder="Nombre completo">
+    <button onclick="startScan()">Escanear identidad</button>
 </div>
 
-<div id="pauseOverlay">
-    <button class="pause-btn" onclick="togglePause()">
-        <img src="sprays/back_to_game.png" alt="Back to Game">
-    </button>
-    <button class="pause-btn" onclick="openSettings()">
-        <img src="sprays/settings.png" alt="Settings">
-    </button>
-    <button class="pause-btn" onclick="location.reload()">
-        <img src="sprays/restart_game.png" alt="Restart Game">
-    </button>
+<!-- PANTALLA TEST -->
+<div id="testScreen" class="screen">
+
+<h2>TEST ULTRA SECRETO DEL ESTADO DE ISRAEL</h2>
+<p id="welcome"></p>
+
+<div id="quiz">
+
+<div class="question">
+<p>1. ¿Quién siempre parece saber todo antes que pase?</p>
+<button onclick="answer()">El Mossad</button>
+<button onclick="answer()">Mi primo</button>
 </div>
 
-<div id="settingsScreen">
-    <div class="setting-item">
-        <img src="sprays/music_volume.png" class="setting-label-img">
-        <input type="range" id="volMusic" min="0" max="1" step="0.1" value="0.6">
-    </div>
-    <div class="setting-item">
-        <img src="sprays/sfx_volume.png" class="setting-label-img">
-        <input type="range" id="volSFX" min="0" max="1" step="0.1" value="0.6">
-    </div>
-    <div class="setting-item">
-        <img src="sprays/mouse_sens.png" class="setting-label-img">
-        <input type="range" id="mouseSens" min="0.001" max="0.01" step="0.001" value="0.003">
-    </div>
-    <div class="setting-item">
-        <div style="display:flex; align-items:center; gap:15px;">
-            <img src="sprays/shoot_key.png" class="setting-label-img">
-            <span id="currentShootKey" style="color:red; font-size:24px; font-weight:bold; text-shadow: 2px 2px #000;">SPACE</span>
-        </div>
-        <button id="changeKeyBtn" class="menu-btn">
-            <img id="changeKeyImg" src="sprays/button_bind_positive.png" style="width:200px">
-        </button>
-    </div>
-    <button id="backSettingsBtn" class="menu-btn" onclick="closeSettings()" style="margin-top:40px; margin-bottom: 20px;">
-        <img id="backSettingsImg" src="sprays/exit.png" style="width:220px">
-    </button>
+<div class="question hidden">
+<p>2. ¿Qué tecnología parece del futuro?</p>
+<button onclick="answer()">Los sistemas israelíes</button>
+<button onclick="answer()">Mi vieja computadora</button>
 </div>
 
-<div id="deathScreen">
-    <img id="deathImg" src="sprays/you_died.png">
-    <button class="retry-btn-style" onclick="location.reload()">
-        <img src="sprays/play_again.png">
-    </button>
+<div class="question hidden">
+<p>3. ¿Israel es famoso por?</p>
+<button onclick="answer()">Innovación y defensa</button>
+<button onclick="answer()">Criar dragones</button>
 </div>
 
-<div id="bossUI">
-  <div class="boss-name">CYBER-BOSS</div>
-  <div id="bossBarContainer"><div id="bossBarFill"></div></div>
+<div class="question hidden">
+<p>4. ¿Qué harías como agente secreto?</p>
+<button onclick="answer()">Proteger al país</button>
+<button onclick="answer()">Dormir todo el día</button>
 </div>
-<div id="stageScreen"></div> 
-<div id="winScreen">
-    <img src="sprays/win.png" style="width:100%; height:60%; object-fit:contain; padding-top:100px;">
-    <button class="retry-btn-style" onclick="location.reload()">
-        <img src="sprays/play_again.png">
-    </button>
-</div>
-<div id="hud">
-  <div id="hud-inner">
-    <div id="ammoContainer"><div id="ammo">8</div><div class="label">AMMO</div></div>
-    <div id="faceContainer"><img id="faceImg" src="sprays/normal_face.png"></div>
-    <div id="healthContainer">
-        <div class="health-stack" id="healthStack">
-            <img id="healthBg" class="health-img" src="sprays/health_bg.png">
-            <img id="healthFill" class="health-img" src="sprays/health_full.png">
-        </div>
-    </div>
-  </div>
-</div>
-<img id="weapon" src="sprays/gun1.png">
 
-<audio id="menuMusic" src="music/menu.mp3" loop></audio>
-<audio id="stage1Music" src="music/stage1.mp3" loop></audio>
-<audio id="stage2Music" src="music/stage2.mp3" loop></audio>
-<audio id="winMusic" src="music/win.mp3"></audio>
-<audio id="shot" src="sfx/shot.mp3"></audio>
-<audio id="bossShot" src="sfx/boss_shot.mp3"></audio>
-<audio id="hurt" src="sfx/hurt.mp3"></audio>
-<audio id="death" src="sfx/death.mp3"></audio>
-<audio id="deathBoss" src="sfx/death_boss.mp3"></audio>
-<audio id="reload" src="sfx/reload.mp3"></audio>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+<h3 id="result" class="hidden"></h3>
+
+</div>
+
 <script>
-const menuMusic=document.getElementById("menuMusic"), stage1Music=document.getElementById("stage1Music"),
-      stage2Music=document.getElementById("stage2Music"), winMusic=document.getElementById("winMusic"),
-      bossShotSFX=document.getElementById("bossShot"), hurtSFX=document.getElementById("hurt"),
-      deathSFX=document.getElementById("death"), deathBossSFX=document.getElementById("deathBoss"),
-      shotSFX=document.getElementById("shot"), reloadSFX=document.getElementById("reload");
+const loadingText = [
+"Inicializando sistema secreto...",
+"Conectando con satélites israelíes...",
+"Localizando agentes Mossad...",
+"Descargando archivos ultra clasificados...",
+"Analizando ADN (100% real no fake)...",
+"Confirmando seguridad...",
+"Bienvenido al sistema."
+];
 
-let config = { volMusic: 0.6, volSFX: 0.6, mouseSens: 0.003, shootKey: " " };
-if(localStorage.getItem('doomConfig')) { config = JSON.parse(localStorage.getItem('doomConfig')); }
+let loadingDiv = document.getElementById("loading");
+let index = 0;
 
-function applyConfig() {
-    [menuMusic,stage1Music,stage2Music,winMusic].forEach(a => a.volume = config.volMusic);
-    [bossShotSFX,hurtSFX,deathBossSFX,shotSFX,reloadSFX,deathSFX].forEach(a => a.volume = config.volSFX);
-    document.getElementById("volMusic").value = config.volMusic;
-    document.getElementById("volSFX").value = config.volSFX;
-    document.getElementById("mouseSens").value = config.mouseSens;
-    document.getElementById("currentShootKey").innerText = config.shootKey === " " ? "SPACE" : config.shootKey.toUpperCase();
-}
-
-function saveConfig() { localStorage.setItem('doomConfig', JSON.stringify(config)); }
-
-function playSFX(audio) {
-    audio.currentTime = 0;
-    audio.play().catch(()=>{});
-}
-
-function playOnly(music) {
-    [menuMusic, stage1Music, stage2Music, winMusic].forEach(m => { m.pause(); m.currentTime = 0; });
-    music.play().catch(()=>{});
-}
-
-document.getElementById("volMusic").oninput = (e) => { config.volMusic = parseFloat(e.target.value); applyConfig(); saveConfig(); };
-document.getElementById("volSFX").oninput = (e) => { config.volSFX = parseFloat(e.target.value); applyConfig(); saveConfig(); };
-document.getElementById("mouseSens").oninput = (e) => { config.mouseSens = parseFloat(e.target.value); saveConfig(); };
-
-document.getElementById("changeKeyBtn").onclick = () => {
-    document.getElementById("currentShootKey").innerText = "WAITING...";
-    const listenKey = (e) => {
-        config.shootKey = e.key;
-        document.getElementById("currentShootKey").innerText = e.key === " " ? "SPACE" : e.key.toUpperCase();
-        saveConfig();
-        window.removeEventListener("keydown", listenKey);
-    };
-    window.addEventListener("keydown", listenKey);
-};
-
-function openSettings() {
-    document.body.classList.add("curtains-closed");
-    setTimeout(() => {
-        document.getElementById("settingsScreen").style.display = "flex";
-        document.getElementById("pauseOverlay").style.display = "none";
-        document.getElementById("menu").style.display = "none";
-        setTimeout(() => { document.body.classList.remove("curtains-closed"); }, 100);
-    }, 800);
-}
-
-function closeSettings() {
-    document.body.classList.add("curtains-closed");
-    setTimeout(() => {
-        document.getElementById("settingsScreen").style.display = "none";
-        if(!started) { document.getElementById("menu").style.display = "flex"; }
-        else { document.getElementById("pauseOverlay").style.display = "flex"; }
-        setTimeout(() => { document.body.classList.remove("curtains-closed"); }, 100);
-    }, 800);
-}
-
-applyConfig();
-
-const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,.1,1000);
-camera.position.set(0,1.7,0);
-
-const renderer=new THREE.WebGLRenderer({antialias:false}); 
-renderer.setSize(innerWidth,innerHeight);
-document.body.appendChild(renderer.domElement);
-
-const ambientLight = new THREE.AmbientLight(0xffffff, 1.2); scene.add(ambientLight);
-
-const loader=new THREE.TextureLoader();
-
-// --- SUELO ---
-const floorGeo = new THREE.PlaneGeometry(100, 100);
-const floorTex = loader.load("sprays/floor.png");
-floorTex.magFilter = THREE.NearestFilter;
-floorTex.minFilter = THREE.NearestFilter;
-floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
-floorTex.repeat.set(50, 50); 
-const floorMat = new THREE.MeshBasicMaterial({ map: floorTex });
-const floor = new THREE.Mesh(floorGeo, floorMat);
-floor.rotation.x = -Math.PI / 2;
-scene.add(floor);
-
-// --- TECHO ---
-const ceilingGeo = new THREE.PlaneGeometry(100, 100);
-const ceilingTex = floorTex.clone();
-ceilingTex.repeat.set(50, 50);
-const ceilingMat = new THREE.MeshBasicMaterial({ map: ceilingTex });
-const ceiling = new THREE.Mesh(ceilingGeo, ceilingMat);
-ceiling.position.y = 5;
-ceiling.rotation.x = Math.PI / 2;
-scene.add(ceiling);
-
-// --- VARIABLES DE ESTADO ---
-let started=false, vida=100, ammo=8, reloading=false, stage=0, boss=null, isStageTransition=false, paused=false;
-let hasWeapon = false; 
-let groundWeapon = null;
-let tutorialDoor = null;
-let stage1Door = null;
-
-let wallGroup = new THREE.Group();
-scene.add(wallGroup);
-
-let shakeIntensity = 0, bossDeadSequence = false;
-let lastSummonTime = 0, lastMedkitTime = 0;
-let enemiesKilledStage2 = 0; // NUEVO: Contador de muertes Stage 2
-let bossFalling = false; // NUEVO: Estado de caída del Boss
-const BOSS_MAX_LIFE = 1200;
-const BOSS_FINAL_Y = 1.5 * 6 / 2; // Basado en altura del boss (size=6)
-
-const ammoEl=document.getElementById("ammo"), faceImg=document.getElementById("faceImg"), 
-      weapon=document.getElementById("weapon"), bossUI=document.getElementById("bossUI"), 
-      bossBarFill=document.getElementById("bossBarFill"), damageOverlay=document.getElementById("damageOverlay"),
-      healthFill=document.getElementById("healthFill"), healthStack=document.getElementById("healthStack"),
-      stageScreen=document.getElementById("stageScreen"), pauseOverlay=document.getElementById("pauseOverlay"),
-      crosshair=document.getElementById("crosshair"), deathScreen=document.getElementById("deathScreen");
-
-function updateHUD(){ 
-  ammoEl.textContent = ammo; 
-  const clipAmount = 100 - vida;
-  healthFill.style.clipPath = `inset(0 ${clipAmount}% 0 0)`;
-  if(vida > 0 && vida < 20) healthStack.classList.add("emergency-blink");
-  else healthStack.classList.remove("emergency-blink");
-  faceImg.src = vida <= 0 ? "sprays/dead_face.png" : (vida < 35 ? "sprays/hurt_face.png" : "sprays/normal_face.png");
-}
-
-function triggerDamageEffect() {
-  damageOverlay.style.opacity = "1";
-  setTimeout(() => { if(started && vida > 0) damageOverlay.style.opacity = "0"; }, 400);
-}
-
-function shakeCamera(amount) { shakeIntensity = amount; }
-
-function togglePause() {
-    if(!started || vida <= 0 || isStageTransition || bossDeadSequence || document.getElementById("settingsScreen").style.display === "flex") return;
-    if(!paused) {
-        paused = true;
-        pauseOverlay.style.display = "flex";
-        document.exitPointerLock(); 
+function fakeCMD() {
+    if (index < loadingText.length) {
+        loadingDiv.innerHTML += loadingText[index] + "\n";
+        index++;
+        setTimeout(fakeCMD, 700);
     } else {
-        paused = false;
-        pauseOverlay.style.display = "none";
-        renderer.domElement.requestPointerLock();
+        setTimeout(() => {
+            document.getElementById("loading").classList.remove("active");
+            document.getElementById("nameScreen").classList.add("active");
+        }, 1000);
     }
 }
 
-document.addEventListener('pointerlockchange', () => {
-    if (document.pointerLockElement !== renderer.domElement && started && vida > 0 && !isStageTransition && !bossDeadSequence && document.getElementById("settingsScreen").style.display !== "flex") {
-        paused = true;
-        pauseOverlay.style.display = "flex";
-    } else if (document.pointerLockElement === renderer.domElement) {
-        paused = false;
-        pauseOverlay.style.display = "none";
+fakeCMD();
+
+function startScan() {
+    let name = document.getElementById("username").value;
+    if (name.trim() === "") return;
+
+    document.getElementById("nameScreen").classList.remove("active");
+    document.getElementById("testScreen").classList.add("active");
+
+    document.getElementById("welcome").innerText = 
+        "Identidad verificada: " + name + " ✔ (probabilidad de agente secreto: 99.8%)";
+}
+
+let current = 0;
+let questions = document.querySelectorAll(".question");
+
+function answer() {
+    questions[current].classList.add("hidden");
+    current++;
+
+    if (current < questions.length) {
+        questions[current].classList.remove("hidden");
+    } else {
+        showResult();
     }
-});
-
-document.addEventListener("mousedown", (e) => {
-    if (!started || vida <= 0 || isStageTransition || bossDeadSequence || paused || document.getElementById("settingsScreen").style.display === "flex") return; 
-    if (document.pointerLockElement !== renderer.domElement) {
-        renderer.domElement.requestPointerLock();
-    } else if (e.button === 0 && hasWeapon) { 
-        shoot();
-    }
-});
-
-document.addEventListener("mousemove", (e) => {
-    if(started && !paused && vida > 0 && document.pointerLockElement === renderer.domElement) {
-        camera.rotation.y -= e.movementX * config.mouseSens;
-    }
-});
-
-let rays = [];
-function createRay(pos) {
-    const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0)]);
-    const mat = new THREE.LineBasicMaterial({ color: Math.random() > 0.5 ? 0xffffff : 0x00ffff, transparent: true });
-    const line = new THREE.Line(geo, mat);
-    line.position.copy(pos);
-    line.dir = new THREE.Vector3(Math.random()-0.5, Math.random(), Math.random()-0.5).normalize();
-    line.speed = 0.4 + Math.random() * 0.6;
-    scene.add(line);
-    rays.push(line);
 }
 
-let medkits = [];
-function spawnMedkit(x, z) {
-  const geo = new THREE.PlaneGeometry(1, 1);
-  const mat = new THREE.MeshLambertMaterial({transparent: true, side: THREE.DoubleSide, alphaTest: 0.1});
-  const med = new THREE.Mesh(geo, mat);
-  med.position.set(x, 0.5, z);
-  scene.add(med);
-  medkits.push(med);
-  loader.load("sprays/healt.png", tex => {
-    tex.magFilter = THREE.NearestFilter; 
-    tex.minFilter = THREE.NearestFilter;
-    med.material.map = tex;
-    med.material.needsUpdate = true;
-  });
+function showResult() {
+    let result = document.getElementById("result");
+    result.classList.remove("hidden");
+    result.innerText = "RESULTADO: APTO PARA AGENCIA SECRETA ISRAELÍ 🕶️🇮🇱\nBienvenido al nivel ultra secreto.";
 }
-
-function createWall(x, z, width, depth) {
-    const height = 5;
-    const wallGeo = new THREE.BoxGeometry(width, height, depth);
-    const wallTex = loader.load("sprays/wall.png");
-    wallTex.magFilter = wallTex.minFilter = THREE.NearestFilter;
-    wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
-    const hRep = Math.max(width, depth);
-    wallTex.repeat.set(hRep, height);
-    const wallMat = new THREE.MeshBasicMaterial({ map: wallTex });
-    const wall = new THREE.Mesh(wallGeo, wallMat);
-    wall.position.set(x, height / 2, z);
-    wallGroup.add(wall);
-}
-
-function setupTutorial() {
-    createWall(-4, -5, 1, 15); 
-    createWall(4, -5, 1, 15);  
-    createWall(0, -12.5, 9, 1); 
-    createWall(0, 2, 9, 1);
-
-    const weaponGeo = new THREE.PlaneGeometry(1, 1);
-    const weaponMat = new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.5 });
-    groundWeapon = new THREE.Mesh(weaponGeo, weaponMat);
-    groundWeapon.position.set(0, 0.5, -5);
-    scene.add(groundWeapon);
-    loader.load("sprays/pistol_glock.png", tex => {
-        tex.magFilter = THREE.NearestFilter;
-        groundWeapon.material.map = tex;
-        groundWeapon.material.needsUpdate = true;
-    });
-
-    const doorGeo = new THREE.PlaneGeometry(2, 3);
-    const doorMat = new THREE.MeshBasicMaterial({ transparent: true, alphaTest: 0.5, side: THREE.DoubleSide });
-    tutorialDoor = new THREE.Mesh(doorGeo, doorMat);
-    tutorialDoor.position.set(0, 1.5, -11.9); 
-    scene.add(tutorialDoor);
-    loader.load("sprays/door.png", tex => {
-        tex.magFilter = THREE.NearestFilter;
-        tutorialDoor.material.map = tex;
-        tutorialDoor.material.needsUpdate = true;
-    });
-}
-
-function createStage1Door() {
-    const doorGeo = new THREE.PlaneGeometry(2.5, 3.5);
-    const doorMat = new THREE.MeshBasicMaterial({
-        transparent: true,
-        alphaTest: 0.5,
-        side: THREE.DoubleSide
-    });
-
-    stage1Door = new THREE.Mesh(doorGeo, doorMat);
-    stage1Door.position.set(0, 1.75, -22);
-    scene.add(stage1Door);
-
-    loader.load("sprays/door.png", tex => {
-        tex.magFilter = THREE.NearestFilter;
-        stage1Door.material.map = tex;
-        stage1Door.material.needsUpdate = true;
-    });
-}
-
-let stageWalls = [];
-
-function createStageWalls(width, depth) {
-
-    // borrar paredes anteriores
-    stageWalls.forEach(w => scene.remove(w));
-    stageWalls = [];
-
-    const wallHeight = 5;
-
-    const wallMat = new THREE.MeshBasicMaterial({ color: 0x444444 });
-
-    // pared norte
-    const north = new THREE.Mesh(
-        new THREE.BoxGeometry(width, wallHeight, 0.5),
-        wallMat
-    );
-    north.position.set(0, wallHeight/2, -depth/2);
-    scene.add(north);
-
-    // pared sur
-    const south = new THREE.Mesh(
-        new THREE.BoxGeometry(width, wallHeight, 0.5),
-        wallMat
-    );
-    south.position.set(0, wallHeight/2, depth/2);
-    scene.add(south);
-
-    // pared izquierda
-    const west = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, wallHeight, depth),
-        wallMat
-    );
-    west.position.set(-width/2, wallHeight/2, 0);
-    scene.add(west);
-
-    // pared derecha
-    const east = new THREE.Mesh(
-        new THREE.BoxGeometry(0.5, wallHeight, depth),
-        wallMat
-    );
-    east.position.set(width/2, wallHeight/2, 0);
-    scene.add(east);
-
-    stageWalls.push(north, south, west, east);
-}
-
-function startStage1() {
-    stage = 1;
-    let tutorialExitDoor = null;
-    camera.position.set(0, 1.7, 49); 
-    createStageWalls(100, 100);
-    isStageTransition = true;
-    if(tutorialDoor) scene.remove(tutorialDoor);
-    scene.remove(wallGroup); 
-    spawnEnemy(0,-15); 
-    spawnEnemy(4,-18); 
-    spawnEnemy(-4,-16);
-    playOnly(stage1Music);
-    isStageTransition = false;
-    function createTutorialExitDoor() {
-
-    const geo = new THREE.BoxGeometry(2, 3.5, 0.5);
-    const mat = new THREE.MeshBasicMaterial({ color: 0x884400 });
-
-    tutorialExitDoor = new THREE.Mesh(geo, mat);
-
-    // justo detrás del jugador al entrar
-    tutorialExitDoor.position.set(0, 1.75, 16);
-
-    scene.add(tutorialExitDoor);
-}
-
-}
-
-window.onload = () => {
-  document.getElementById("menu").style.backgroundImage = "url('sprays/doom.png')";
-  document.getElementById("playBtn").style.display = "block";
-  document.getElementById("mainSettingsBtn").style.display = "block";
-  playOnly(menuMusic);
-};
-
-let move={f:0,b:0,sl:0,sr:0,rotl:0,rotr:0};
-function shoot() {
-  if(!started || paused || ammo <= 0 || reloading || isStageTransition || bossDeadSequence || !hasWeapon) return;
-  ammo--; updateHUD(); playSFX(shotSFX);
-  weapon.src="sprays/gun1_fire.png";
-  setTimeout(()=>{if(!reloading) weapon.src="sprays/gun1.png"}, 100);
-  const b=new THREE.Mesh(new THREE.SphereGeometry(.2), new THREE.MeshBasicMaterial({color:0xffff00}));
-  b.position.copy(camera.position); b.dir=new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
-  scene.add(b); bullets.push(b);
-}
-
-function reloadAction() {
-  if(ammo < 8 && !reloading && !paused && vida > 0 && hasWeapon) {
-    reloading=true; playSFX(reloadSFX); weapon.src="sprays/gun1_reload.png"; weapon.style.width="360px";
-    setTimeout(()=>{ ammo=8; reloading=false; weapon.src="sprays/gun1.png"; weapon.style.width="160px"; updateHUD(); }, 1000);
-  }
-}
-
-document.addEventListener("keydown",e=>{ 
-  if(e.key === "Escape") { togglePause(); return; }
-  if(!started || paused || vida <= 0) return; 
-  const k=e.key.toLowerCase(); 
-  if(k==="w" || e.key === "ArrowUp")move.f=1; 
-  if(k==="s" || e.key === "ArrowDown")move.b=1; 
-  if(k==="a")move.sl=1; 
-  if(k==="d")move.sr=1; 
-  if(e.key==="ArrowLeft"||k==="q")move.rotl=1; 
-  if(e.key==="ArrowRight"||k==="e")move.rotr=1; 
-  if(e.key === config.shootKey || (config.shootKey === " " && e.key === " ")) shoot(); 
-  if(k==="r")reloadAction(); 
-});
-
-document.addEventListener("keyup",e=>{ 
-  const k=e.key.toLowerCase(); 
-  if(k==="w" || e.key === "ArrowUp")move.f=0; 
-  if(k==="s" || e.key === "ArrowDown")move.b=0; 
-  if(k==="a")move.sl=0; 
-  if(k==="d")move.sr=0; 
-  if(e.key==="ArrowLeft"||k==="q")move.rotl=0; 
-  if(e.key==="ArrowRight"||k==="e")move.rotr=0; 
-});
-
-let enemies=[], bullets=[], enemyBullets=[];
-
-function bossFire(e, damage, size, speedMul=0.6) {
-  if(bossDeadSequence || paused || vida <= 0 || bossFalling) return;
-  playSFX(bossShotSFX);
-  const b=new THREE.Mesh(new THREE.SphereGeometry(size), new THREE.MeshBasicMaterial({color:0xff0000}));
-  b.position.copy(e.position); b.dir=camera.position.clone().sub(e.position).normalize();
-  b.damage=damage; b.radius=size; b.isBossBullet=true; b.speedMul = speedMul;
-  scene.add(b); enemyBullets.push(b);
-}
-
-function spawnEnemy(x,z,life=50,size=1.5,speed=.015,isBoss=false, isSummoned=false){
- const h=size*1.7;
- const e=new THREE.Mesh(new THREE.PlaneGeometry(size, h), new THREE.MeshBasicMaterial({color:0xffffff, side:THREE.DoubleSide, transparent:true, opacity: isSummoned ? 0.6 : 1, alphaTest:0.5}));
- e.position.set(x, isBoss ? 20 : h/2, z); // Si es boss, aparece en el cielo
- e.vida=life; e.speed=speed; e.lastShot = performance.now() + (1000 + Math.random() * 300);
-; e.isBoss=isBoss; e.bossState="idle";
- scene.add(e); enemies.push(e);
- let texP = isBoss ? "sprays/boss.png" : `sprays/enemy${Math.floor(Math.random()*3)+1}.png`;
- loader.load(texP, tex=>{ 
-  tex.magFilter=THREE.NearestFilter; 
-  tex.minFilter=THREE.NearestFilter;
-  e.material.map=tex; e.material.needsUpdate=true; 
- });
- if(isBoss) { 
-    boss = e; 
-    bossFalling = true; // El boss empieza cayendo
- }
- return e;
-}
-
-document.getElementById("playBtn").onclick=()=>{ 
-    document.getElementById("menu").style.display="none"; 
-    document.getElementById("hud").style.display="block"; 
-    crosshair.style.display="block";
-    started=true; 
-    updateHUD(); 
-    setupTutorial(); 
-    renderer.domElement.requestPointerLock();
-};
-
-function animate(time){
- requestAnimationFrame(animate);
- if(started && !paused && vida > 0){
-  if(shakeIntensity > 0) {
-    camera.position.x += (Math.random() - 0.5) * shakeIntensity;
-    camera.position.y += (Math.random() - 0.5) * shakeIntensity;
-    shakeIntensity *= 0.9;
-  } else { camera.position.y = 1.7; }
-
-  if(time - lastMedkitTime > 15000 && stage > 0) {
-      lastMedkitTime = time;
-      spawnMedkit(Math.random()*20 - 10, Math.random()*20 - 10);
-  }
-
-  if(!isStageTransition && !bossDeadSequence) {
-    const spd = 0.15; 
-    const rotSpd = 0.03;
-    const prevPos = camera.position.clone();
-
-    if(move.f) camera.translateZ(-spd); 
-    if(move.b) camera.translateZ(spd); 
-    if(move.sl) camera.translateX(-spd); 
-    if(move.sr) camera.translateX(spd);
-    if(move.rotl) camera.rotation.y += rotSpd; 
-    if(move.rotr) camera.rotation.y -= rotSpd;
-
-    // Colisiones suelo y limites (Simple)
-    camera.position.y = 1.7; 
-
-    if(stage === 0) {
-        wallGroup.children.forEach(wall => {
-            const wallBox = new THREE.Box3().setFromObject(wall);
-            const playerBox = new THREE.Box3().setFromCenterAndSize(camera.position, new THREE.Vector3(1, 2, 1));
-            if(wallBox.intersectsBox(playerBox)) {
-                camera.position.copy(prevPos);
-            }
-        });
-    }
-
-    if(stage === 0) {
-        if(groundWeapon) {
-            groundWeapon.lookAt(camera.position.x, groundWeapon.position.y, camera.position.z);
-            if(camera.position.distanceTo(groundWeapon.position) < 2) {
-                hasWeapon = true;
-                weapon.style.display = "block";
-                scene.remove(groundWeapon);
-                groundWeapon = null;
-                playSFX(reloadSFX);
-                faceImg.src = "sprays/happy_face.png";
-setTimeout(()=> updateHUD(), 800);
-
-            }
-        }
-        if(tutorialDoor) {
-            if(camera.position.distanceTo(tutorialDoor.position) < 2.5) {
-                if(hasWeapon) startStage1();
-                else camera.position.copy(prevPos);
-            }
-        }
-    }
-
-if(stage === 1) {
-    stageWalls.forEach(wall => {
-        const wallBox = new THREE.Box3().setFromObject(wall);
-        const playerBox = new THREE.Box3().setFromCenterAndSize(
-            camera.position,
-            new THREE.Vector3(1, 2, 1)
-        );
-
-        if(wallBox.intersectsBox(playerBox)) {
-            camera.position.copy(prevPos);
-        }
-    });
-}
-
-
-    medkits.forEach((m, i) => {
-      m.lookAt(camera.position.x, m.position.y, camera.position.z);
-      if(camera.position.distanceTo(m.position) < 2.5) {
-        vida = Math.min(100, vida + 15);
-        updateHUD();
-        scene.remove(m);
-        medkits.splice(i, 1);
-        playSFX(reloadSFX); 
-      }
-    });
-
-    enemies.forEach(e=>{
-      e.lookAt(camera.position.x, e.position.y, camera.position.z);
-      
-      if(e.isBoss) {
-        if(bossFalling) {
-            // Animación de caída
-            e.position.y -= 0.05;
-            shakeCamera(0.2); // Tiembla mientras cae
-            if(e.position.y <= BOSS_FINAL_Y) {
-                e.position.y = BOSS_FINAL_Y;
-                bossFalling = false;
-                shakeCamera(1.5); // Gran impacto al aterrizar
-                bossUI.style.display = "flex";
-            }
-        } else {
-            // Comportamiento normal Boss
-            e.position.add(camera.position.clone().sub(e.position).normalize().multiplyScalar(e.speed));
-            
-            if(time - lastSummonTime > 20000) {
-              lastSummonTime = time;
-              spawnEnemy(e.position.x + 5, e.position.z, 50, 1.5, 0.02, false, true);
-              spawnEnemy(e.position.x - 5, e.position.z, 50, 1.5, 0.02, false, true);
-              shakeCamera(0.4);
-            }
-            
-            if(time - e.lastShot > 1000 && e.bossState === "idle") {
-               e.bossState = Math.random() > 0.4 ? "rapid" : "heavy";
-               e.lastShot = time;
-               if(e.bossState === "rapid") {
-                 let shots = 0;
-                 let interval = setInterval(() => {
-                   if(!started || paused || e.vida <= 0 || bossDeadSequence || vida <= 0) { 
-                     clearInterval(interval); e.bossState = "idle"; return; 
-                   }
-                   bossFire(e, 5, 0.4, 0.7); shots++;
-                   if(shots >= 15) { e.bossState = "idle"; clearInterval(interval); }
-                 }, 200);
-               } else {
-                 bossFire(e, 40, 2.5, 0.45);
-                 setTimeout(() => { e.bossState = "idle"; }, 1000);
-               }
-            }
-        }
-      } else {
-        // Enemigos normales
-        e.position.add(camera.position.clone().sub(e.position).normalize().multiplyScalar(e.speed));
-        if(time-e.lastShot > 4000){
-            e.lastShot=time; playSFX(shotSFX);
-            const b=new THREE.Mesh(new THREE.SphereGeometry(0.25), new THREE.MeshBasicMaterial({color:0xff0000}));
-            b.position.copy(e.position); b.dir=camera.position.clone().sub(e.position).normalize();
-            b.damage=15; b.radius=0.25; b.speedMul = 0.4; scene.add(b); enemyBullets.push(b);
-        }
-      }
-    });
-  }
-
-  if(bossDeadSequence && boss) {
-      boss.position.y -= 0.02;
-      shakeCamera(0.3);
-      for(let i=0; i<3; i++) createRay(boss.position);
-  }
-
-  rays.forEach((r, i) => {
-      const pos = r.geometry.attributes.position;
-      pos.array[3] += r.dir.x * r.speed; pos.array[4] += r.dir.y * r.speed; pos.array[5] += r.dir.z * r.speed;
-      pos.needsUpdate = true;
-      r.material.opacity -= 0.02;
-      if(r.material.opacity <= 0) { scene.remove(r); rays.splice(i, 1); }
-  });
-
-  bullets.forEach((b,i)=>{
-    b.position.add(b.dir.clone().multiplyScalar(1.2));
-    if(b.position.length() > 100) { scene.remove(b); bullets.splice(i,1); return; }
-    enemies.forEach((e,ei)=>{
-      let hitDist = e.isBoss ? 5 : 1.5;
-      if(b.position.distanceTo(e.position) < hitDist){
-        if(e.isBoss && bossFalling) return; // Boss invulnerable mientras cae
-        e.vida-=25; scene.remove(b); bullets.splice(i,1);
-        if(e.isBoss) {
-            bossBarFill.style.width = (e.vida/BOSS_MAX_LIFE*100) + "%";
-            if(e.vida <= 0 && !bossDeadSequence) {
-                bossDeadSequence = true; playSFX(deathBossSFX);
-                loader.load("sprays/boss_dead.png", tex => { 
-                    tex.magFilter=THREE.NearestFilter; e.material.map=tex; e.material.needsUpdate=true; 
-                });
-                setTimeout(() => { 
-                    started = false; playOnly(winMusic); 
-                    document.getElementById("winScreen").style.display="flex"; 
-                    bossUI.style.display="none"; crosshair.style.display="none";
-                    document.exitPointerLock(); 
-                }, 5000);
-            }
-        } else if(e.vida<=0){ 
-            playSFX(deathSFX); 
-            scene.remove(e); 
-            enemies.splice(ei,1); 
-            if(stage === 2 && !boss) {
-                enemiesKilledStage2++;
-                if(enemiesKilledStage2 >= 5) {
-                    spawnEnemy(0, -20, BOSS_MAX_LIFE, 6, 0.01, true); // Aparece el Boss
-                } else {
-                    // Seguir spawneando enemigos hasta llegar a 5
-                    spawnEnemy(Math.random()*20-10, -20);
-                }
-            }
-        }
-      }
-    });
-  });
-
-  enemyBullets.forEach((b,i)=>{
-    b.position.add(b.dir.clone().multiplyScalar(b.speedMul || 0.35));
-    if(b.position.distanceTo(camera.position) < 1.5){
-      vida=Math.max(0,vida-b.damage); playSFX(hurtSFX); triggerDamageEffect(); updateHUD();
-      if(b.isBossBullet) shakeCamera(0.6); 
-      scene.remove(b); enemyBullets.splice(i,1);
-      if(vida<=0){ 
-        playSFX(deathSFX); damageOverlay.style.opacity="1";
-        document.exitPointerLock(); deathScreen.style.display = "flex"; crosshair.style.display = "none";
-      }
-    }
-    else if(b.position.length() > 100) { scene.remove(b); enemyBullets.splice(i,1); }
-  });
-
-  if(stage===1 && enemies.length===0 && !isStageTransition){if(stage===1 && enemies.length===0 && !isStageTransition){
-  stage=2; 
-  isStageTransition=true; 
-  playOnly(stage2Music); 
-
-  // 👉 ELIMINAR TECHO EN STAGE 2
-  scene.remove(ceiling);
-
-  document.body.classList.add("curtains-closed");
-  setTimeout(()=>{
-    stageScreen.style.display="block";
-    setTimeout(()=>{
-      document.body.classList.remove("curtains-closed");
-      setTimeout(()=>{
-         stageScreen.style.display="none"; 
-         isStageTransition=false;
-
-         // Spawn inicial Stage 2
-         spawnEnemy(5, -15); 
-         spawnEnemy(-5, -15);
-
-      },2000);
-    },800);
-  },800);
-}
-
-    stage=2; isStageTransition=true; playOnly(stage2Music); 
-    document.body.classList.add("curtains-closed");
-    setTimeout(()=>{
-      stageScreen.style.display="block";
-      setTimeout(()=>{
-        document.body.classList.remove("curtains-closed");
-        setTimeout(()=>{
-           stageScreen.style.display="none"; isStageTransition=false;
-           // Spawn inicial de Stage 2
-           spawnEnemy(5, -15); spawnEnemy(-5, -15);
-        },2000);
-      },800);
-    },800);
-  }
- }
- renderer.render(scene,camera);
-}
-requestAnimationFrame(animate);
-
-window.onresize=()=>{
- camera.aspect=innerWidth/innerHeight; camera.updateProjectionMatrix();
- renderer.setSize(innerWidth,innerHeight);
-};
 </script>
+
 </body>
 </html>
