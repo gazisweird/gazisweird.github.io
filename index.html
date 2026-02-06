@@ -1,177 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Test Ultra Secreto - Israel</title>
-
-<style>
-body {
-    margin: 0;
-    font-family: "Courier New", monospace;
-    background: black;
-    color: #00ff00;
-    overflow: hidden;
-}
-
-.screen {
-    display: none;
-    height: 100vh;
-    padding: 20px;
-}
-
-.active {
-    display: block;
-}
-
-.cmd {
-    white-space: pre-line;
-    font-size: 16px;
-}
-
-.center {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-input, button {
-    background: black;
-    border: 1px solid #00ff00;
-    color: #00ff00;
-    padding: 10px;
-    font-family: monospace;
-    margin-top: 10px;
-}
-
-button:hover {
-    background: #00ff00;
-    color: black;
-    cursor: pointer;
-}
-
-.question {
-    margin-bottom: 20px;
-}
-
-.hidden {
-    display: none;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>Mensaje por IP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background:#111;
+            color:white;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            text-align:center;
+            font-size:24px;
+        }
+    </style>
 </head>
-
 <body>
 
-<!-- PANTALLA CMD -->
-<div id="loading" class="screen active cmd"></div>
-
-<!-- PANTALLA NOMBRE -->
-<div id="nameScreen" class="screen center">
-    <h2>ESCÁNER DE IDENTIDAD - SISTEMA ISRAELÍ</h2>
-    <p>Ingrese su nombre para verificación Mossad</p>
-    <input id="username" placeholder="Nombre completo">
-    <button onclick="startScan()">Escanear identidad</button>
-</div>
-
-<!-- PANTALLA TEST -->
-<div id="testScreen" class="screen">
-
-<h2>TEST ULTRA SECRETO DEL ESTADO DE ISRAEL</h2>
-<p id="welcome"></p>
-
-<div id="quiz">
-
-<div class="question">
-<p>1. ¿Quién siempre parece saber todo antes que pase?</p>
-<button onclick="answer()">El Mossad</button>
-<button onclick="answer()">Mi primo</button>
-</div>
-
-<div class="question hidden">
-<p>2. ¿Qué tecnología parece del futuro?</p>
-<button onclick="answer()">Los sistemas israelíes</button>
-<button onclick="answer()">Mi vieja computadora</button>
-</div>
-
-<div class="question hidden">
-<p>3. ¿Israel es famoso por?</p>
-<button onclick="answer()">Innovación y defensa</button>
-<button onclick="answer()">Criar dragones</button>
-</div>
-
-<div class="question hidden">
-<p>4. ¿Qué harías como agente secreto?</p>
-<button onclick="answer()">Proteger al país</button>
-<button onclick="answer()">Dormir todo el día</button>
-</div>
-
-</div>
-
-<h3 id="result" class="hidden"></h3>
-
-</div>
+<div id="mensaje">Cargando...</div>
 
 <script>
-const loadingText = [
-"Inicializando sistema secreto...",
-"Conectando con satélites israelíes...",
-"Localizando agentes Mossad...",
-"Descargando archivos ultra clasificados...",
-"Analizando ADN (100% real no fake)...",
-"Confirmando seguridad...",
-"Bienvenido al sistema."
-];
+async function obtenerDatos() {
 
-let loadingDiv = document.getElementById("loading");
-let index = 0;
+    // API para IP + ciudad
+    const res = await fetch("https://ipapi.co/json/");
+    const data = await res.json();
 
-function fakeCMD() {
-    if (index < loadingText.length) {
-        loadingDiv.innerHTML += loadingText[index] + "\n";
-        index++;
-        setTimeout(fakeCMD, 700);
-    } else {
-        setTimeout(() => {
-            document.getElementById("loading").classList.remove("active");
-            document.getElementById("nameScreen").classList.add("active");
-        }, 1000);
+    const ip = data.ip;
+    const ciudad = data.city || "tu ciudad";
+
+    const mensajeDiv = document.getElementById("mensaje");
+
+    // IPs dadas
+    const ip1 = "190.2.118.195";
+    const ip2 = "186.57.211.221";
+
+    if (ip === ip1) {
+        mensajeDiv.innerText = `Hola Ian! un gusto verte de nuevo 👀👀, hace calor en ${ciudad}`;
+    } 
+    else if (ip === ip2) {
+        mensajeDiv.innerText = `Hola owner! un gusto verte de nuevo 👀👀, hace calor en ${ciudad}`;
+    } 
+    else {
+        mensajeDiv.innerText = `Hola visitante! Estás entrando desde ${ciudad}`;
     }
 }
 
-fakeCMD();
-
-function startScan() {
-    let name = document.getElementById("username").value;
-    if (name.trim() === "") return;
-
-    document.getElementById("nameScreen").classList.remove("active");
-    document.getElementById("testScreen").classList.add("active");
-
-    document.getElementById("welcome").innerText = 
-        "Identidad verificada: " + name + " ✔ (probabilidad de agente secreto: 99.8%)";
-}
-
-let current = 0;
-let questions = document.querySelectorAll(".question");
-
-function answer() {
-    questions[current].classList.add("hidden");
-    current++;
-
-    if (current < questions.length) {
-        questions[current].classList.remove("hidden");
-    } else {
-        showResult();
-    }
-}
-
-function showResult() {
-    let result = document.getElementById("result");
-    result.classList.remove("hidden");
-    result.innerText = "RESULTADO: APTO PARA AGENCIA SECRETA ISRAELÍ 🕶️🇮🇱\nBienvenido al nivel ultra secreto.";
-}
+obtenerDatos();
 </script>
 
 </body>
 </html>
-
